@@ -13,19 +13,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
-        android:layout_marginBottom="184dp"
+        android:layout_marginBottom="188dp"
         android:text="Back"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/playstop"
-        app:layout_constraintHorizontal_bias="0.677"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/playstop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="184dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="188dp"
         android:text="Play"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/next" />
@@ -34,8 +34,8 @@
         android:id="@+id/next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="68dp"
-        android:layout_marginBottom="184dp"
+        android:layout_marginEnd="104dp"
+        android:layout_marginBottom="188dp"
         android:text="Next"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -44,8 +44,8 @@
         android:id="@+id/seekBar"
         android:layout_width="344dp"
         android:layout_height="17dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="408dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="412dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -54,7 +54,7 @@
         android:layout_width="293dp"
         android:layout_height="22dp"
         android:layout_marginStart="56dp"
-        android:layout_marginBottom="408dp"
+        android:layout_marginBottom="352dp"
         android:text="No song selected"
         android:textSize="18sp"
         android:textStyle="bold"
@@ -83,13 +83,35 @@
 
     <TextView
         android:id="@+id/songsList"
-        android:layout_width="408dp"
-        android:layout_height="199dp"
-        android:layout_marginBottom="492dp"
+        android:layout_width="400dp"
+        android:layout_height="176dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="4dp"
         android:maxLines="10"
         android:scrollbars="vertical"
         android:text="Available songs will appear here"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/albumArt"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="96dp"
+        android:layout_marginTop="132dp"
+        android:contentDescription="Album art"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/shuffle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="188dp"
+        android:text="🔀 OFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

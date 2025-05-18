@@ -2,38 +2,47 @@ package com.example.calcul
 
 import android.Manifest.permission.READ_MEDIA_AUDIO
 import android.annotation.SuppressLint
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
+import android.os.Looper
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 class Playeer : AppCompatActivity() {
     private var mediaPlayer: MediaPlayer? = null
     private lateinit var playstop: Button
     private lateinit var next: Button
     private lateinit var back: Button
+    private lateinit var shuffle: Button
     private lateinit var musicPath: String
     private lateinit var directory: File
     private lateinit var seekBar: SeekBar
+    private lateinit var albumArt: ImageView
     private var musicList: Array<File> = arrayOf()
     private lateinit var currentTimeTextView: TextView
     private lateinit var totalTimeTextView: TextView
     private lateinit var songNameTextView: TextView
     private lateinit var songsListTextView: TextView
     private var songIndex: Int = 0
-    private val handler = Handler()
+    private var isShuffleOn: Boolean = false
+    private val handler = Handler(Looper.getMainLooper())
     private lateinit var updateSeekBarRunnable: Runnable
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +72,8 @@ class Playeer : AppCompatActivity() {
         playstop = findViewById(R.id.playstop)
         next = findViewById(R.id.next)
         back = findViewById(R.id.back)
+        shuffle = findViewById(R.id.shuffle)
+        albumArt = findViewById(R.id.albumArt)
         currentTimeTextView = findViewById(R.id.currentTime)
         totalTimeTextView = findViewById(R.id.totalTime)
         songNameTextView = findViewById(R.id.songName)
@@ -91,11 +102,13 @@ class Playeer : AppCompatActivity() {
     }
 
     private fun initializeMediaPlayer() {
+        mediaPlayer?.release()
         mediaPlayer = MediaPlayer.create(this, Uri.fromFile(musicList[songIndex]))
         mediaPlayer?.let { player ->
             seekBar.max = player.duration
             updateSongInfo()
             updateSongsList()
+            loadAlbumArt()
 
             updateSeekBarRunnable = object : Runnable {
                 override fun run() {
@@ -107,6 +120,23 @@ class Playeer : AppCompatActivity() {
                 }
             }
             handler.post(updateSeekBarRunnable)
+        }
+    }
+
+    private fun loadAlbumArt() {
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(musicList[songIndex].absolutePath)
+            val art = retriever.embeddedPicture
+            if (art != null) {
+                val bitmap = BitmapFactory.decodeByteArray(art, 0, art.size)
+                albumArt.setImageBitmap(bitmap)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+
+        } finally {
+            retriever.release()
         }
     }
 
@@ -137,13 +167,34 @@ class Playeer : AppCompatActivity() {
             songsText.append("${index + 1}. ${file.name.replace(".mp3", "")}\n")
         }
         songsListTextView.text = songsText.toString()
+        songsListTextView.setOnClickListener {
+            showSongSelectionDialog()
+        }
+    }
+
+    private fun showSongSelectionDialog() {
+        val songNames = musicList.map { it.name.replace(".mp3", "") }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("Select Song")
+            .setItems(songNames) { _, which ->
+                songIndex = which
+                initializeMediaPlayer()
+                mediaPlayer?.start()
+                playstop.text = "⏸"
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onResume() {
         super.onResume()
         mediaPlayer?.setOnCompletionListener {
-            next()
+            if (isShuffleOn) {
+                playRandomSong()
+            } else {
+                next()
+            }
         }
 
         playstop.setOnClickListener {
@@ -158,8 +209,20 @@ class Playeer : AppCompatActivity() {
             }
         }
 
-        next.setOnClickListener { next() }
+        next.setOnClickListener {
+            if (isShuffleOn) {
+                playRandomSong()
+            } else {
+                next()
+            }
+        }
+
         back.setOnClickListener { previous() }
+
+        shuffle.setOnClickListener {
+            isShuffleOn = !isShuffleOn
+            shuffle.text = if (isShuffleOn) "🔀 ON" else "🔀 OFF"
+        }
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -190,3 +253,16 @@ class Playeer : AppCompatActivity() {
         mediaPlayer?.start()
         playstop.text = "⏸"
     }
+
+    private fun playRandomSong() {
+        mediaPlayer?.release()
+        seekBar.progress = 0
+        val newIndex = Random.nextInt(musicList.size)
+        songIndex = if (newIndex != songIndex || musicList.size == 1) newIndex else (newIndex + 1) % musicList.size
+        initializeMediaPlayer()
+        mediaPlayer?.start()
+        playstop.text = "⏸"
+    }
+
+
+}

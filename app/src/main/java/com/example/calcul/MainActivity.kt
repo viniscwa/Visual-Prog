@@ -10,6 +10,7 @@ import androidx.core.view.WindowInsetsCompat
 class MainActivity : AppCompatActivity() {
     private lateinit var startcalc :Button;
     private lateinit var startplayer : Button;
+    private lateinit var startgeo :Button;
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,6 +25,8 @@ class MainActivity : AppCompatActivity() {
 
         startplayer = findViewById(R.id.startplayer);
         startcalc = findViewById(R.id.startcalc);
+        startgeo = findViewById(R.id.startgeo);
+
     }
 
     override fun onResume() {
@@ -39,6 +42,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(randomIntent)
         });
 
+        startgeo.setOnClickListener({
+            val randomIntent = Intent(this@MainActivity, geo::class.java)
+            startActivity(randomIntent)
+        });
     }
 
 }
