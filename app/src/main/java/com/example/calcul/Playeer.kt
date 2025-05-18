@@ -190,17 +190,3 @@ class Playeer : AppCompatActivity() {
         mediaPlayer?.start()
         playstop.text = "⏸"
     }
-
-    override fun onPause() {
-        super.onPause()
-        handler.removeCallbacks(updateSeekBarRunnable)
-        mediaPlayer?.pause()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        handler.removeCallbacks(updateSeekBarRunnable)
-        mediaPlayer?.release()
-        mediaPlayer = null
-    }
-}
