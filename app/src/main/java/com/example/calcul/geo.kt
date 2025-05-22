@@ -19,7 +19,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class geo : AppCompatActivity(), LocationListener {
-
     private lateinit var locationManager: LocationManager
     private lateinit var tvLatitude: TextView
     private lateinit var tvLongitude: TextView
@@ -27,6 +26,7 @@ class geo : AppCompatActivity(), LocationListener {
     private lateinit var tvAccuracy: TextView
     private lateinit var tvTime: TextView
     private lateinit var tvStatus: TextView
+    private var isTracking = false
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,33 +49,54 @@ class geo : AppCompatActivity(), LocationListener {
         checkPermissions()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (isTracking) {
+            startTracking()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopTracking()
+    }
+
     private fun checkPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
                 PERMISSION_REQUEST_CODE
             )
         } else {
-            startGpsTracking()
+            startTracking()
         }
     }
 
     @SuppressLint("MissingPermission")
-    private fun startGpsTracking() {
-        locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-
+    private fun startTracking() {
         try {
+            locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
             locationManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
                 MIN_TIME_MS,
                 MIN_DISTANCE_M,
                 this
             )
+            isTracking = true
             tvStatus.text = "Поиск GPS сигнала"
+
         } catch (e: SecurityException) {
             Toast.makeText(this, "Ошибка доступа к GPS", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun stopTracking() {
+        if (::locationManager.isInitialized) {
+            locationManager.removeUpdates(this)
+        }
+        isTracking = false
     }
 
     override fun onLocationChanged(location: Location) {
@@ -93,11 +114,7 @@ class geo : AppCompatActivity(), LocationListener {
         tvAltitude.text = "Высота: ${"%.2f".format(altitude)} м"
         tvAccuracy.text = "Точность: ${"%.1f".format(accuracy)} м"
         tvTime.text = "Время: $timeString"
-        tvStatus.text = "Данные получены: ${SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())}"
-
-        if (accuracy <= 15) {
-            Toast.makeText(this, "15 метров", Toast.LENGTH_SHORT).show()
-        }
+        tvStatus.text = "Данные получены"
     }
 
     override fun onRequestPermissionsResult(
@@ -108,7 +125,7 @@ class geo : AppCompatActivity(), LocationListener {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                startGpsTracking()
+                startTracking()
             } else {
                 Toast.makeText(this, "Необходимы все разрешения", Toast.LENGTH_SHORT).show()
             }

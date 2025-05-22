@@ -17,20 +17,17 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.io.File
 import java.util.concurrent.TimeUnit
-import kotlin.random.Random
 
 class Playeer : AppCompatActivity() {
     private var mediaPlayer: MediaPlayer? = null
     private lateinit var playstop: Button
     private lateinit var next: Button
     private lateinit var back: Button
-    private lateinit var shuffle: Button
     private lateinit var musicPath: String
     private lateinit var directory: File
     private lateinit var seekBar: SeekBar
@@ -41,7 +38,6 @@ class Playeer : AppCompatActivity() {
     private lateinit var songNameTextView: TextView
     private lateinit var songsListTextView: TextView
     private var songIndex: Int = 0
-    private var isShuffleOn: Boolean = false
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var updateSeekBarRunnable: Runnable
 
@@ -72,7 +68,6 @@ class Playeer : AppCompatActivity() {
         playstop = findViewById(R.id.playstop)
         next = findViewById(R.id.next)
         back = findViewById(R.id.back)
-        shuffle = findViewById(R.id.shuffle)
         albumArt = findViewById(R.id.albumArt)
         currentTimeTextView = findViewById(R.id.currentTime)
         totalTimeTextView = findViewById(R.id.totalTime)
@@ -134,7 +129,6 @@ class Playeer : AppCompatActivity() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-
         } finally {
             retriever.release()
         }
@@ -167,34 +161,13 @@ class Playeer : AppCompatActivity() {
             songsText.append("${index + 1}. ${file.name.replace(".mp3", "")}\n")
         }
         songsListTextView.text = songsText.toString()
-        songsListTextView.setOnClickListener {
-            showSongSelectionDialog()
-        }
-    }
-
-    private fun showSongSelectionDialog() {
-        val songNames = musicList.map { it.name.replace(".mp3", "") }.toTypedArray()
-        AlertDialog.Builder(this)
-            .setTitle("Select Song")
-            .setItems(songNames) { _, which ->
-                songIndex = which
-                initializeMediaPlayer()
-                mediaPlayer?.start()
-                playstop.text = "⏸"
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onResume() {
         super.onResume()
         mediaPlayer?.setOnCompletionListener {
-            if (isShuffleOn) {
-                playRandomSong()
-            } else {
-                next()
-            }
+            next()
         }
 
         playstop.setOnClickListener {
@@ -210,18 +183,11 @@ class Playeer : AppCompatActivity() {
         }
 
         next.setOnClickListener {
-            if (isShuffleOn) {
-                playRandomSong()
-            } else {
-                next()
-            }
+            next()
         }
 
-        back.setOnClickListener { previous() }
-
-        shuffle.setOnClickListener {
-            isShuffleOn = !isShuffleOn
-            shuffle.text = if (isShuffleOn) "🔀 ON" else "🔀 OFF"
+        back.setOnClickListener {
+            previous()
         }
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -253,16 +219,4 @@ class Playeer : AppCompatActivity() {
         mediaPlayer?.start()
         playstop.text = "⏸"
     }
-
-    private fun playRandomSong() {
-        mediaPlayer?.release()
-        seekBar.progress = 0
-        val newIndex = Random.nextInt(musicList.size)
-        songIndex = if (newIndex != songIndex || musicList.size == 1) newIndex else (newIndex + 1) % musicList.size
-        initializeMediaPlayer()
-        mediaPlayer?.start()
-        playstop.text = "⏸"
-    }
-
-
 }
