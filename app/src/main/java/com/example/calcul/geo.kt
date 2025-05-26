@@ -7,6 +7,8 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -27,6 +29,13 @@ class geo : AppCompatActivity(), LocationListener {
     private lateinit var tvTime: TextView
     private lateinit var tvStatus: TextView
     private var isTracking = false
+    private val handler = Handler(Looper.getMainLooper())
+    private val timeUpdater = object : Runnable {
+        override fun run() {
+            updateCurrentTime()
+            handler.postDelayed(this, 1000)
+        }
+    }
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +60,7 @@ class geo : AppCompatActivity(), LocationListener {
 
     override fun onResume() {
         super.onResume()
+        handler.post(timeUpdater)
         if (isTracking) {
             startTracking()
         }
@@ -58,7 +68,14 @@ class geo : AppCompatActivity(), LocationListener {
 
     override fun onPause() {
         super.onPause()
+        handler.removeCallbacks(timeUpdater)
         stopTracking()
+    }
+
+    private fun updateCurrentTime() {
+        val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val currentTime = dateFormat.format(Date())
+        tvTime.text = "Время: $currentTime"
     }
 
     private fun checkPermissions() {
@@ -86,7 +103,6 @@ class geo : AppCompatActivity(), LocationListener {
             )
             isTracking = true
             tvStatus.text = "Поиск GPS сигнала"
-
         } catch (e: SecurityException) {
             Toast.makeText(this, "Ошибка доступа к GPS", Toast.LENGTH_SHORT).show()
         }
@@ -104,16 +120,11 @@ class geo : AppCompatActivity(), LocationListener {
         val longitude = location.longitude
         val altitude = location.altitude
         val accuracy = location.accuracy
-        val time = location.time
-
-        val dateFormat = SimpleDateFormat("HH:mm:ss dd.MM.yyyy", Locale.getDefault())
-        val timeString = dateFormat.format(Date(time))
 
         tvLatitude.text = "Широта: $latitude"
         tvLongitude.text = "Долгота: $longitude"
         tvAltitude.text = "Высота: ${"%.2f".format(altitude)} м"
         tvAccuracy.text = "Точность: ${"%.1f".format(accuracy)} м"
-        tvTime.text = "Время: $timeString"
         tvStatus.text = "Данные получены"
     }
 
