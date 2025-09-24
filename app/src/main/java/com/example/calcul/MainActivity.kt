@@ -11,6 +11,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var startcalc :Button;
     private lateinit var startplayer : Button;
     private lateinit var startgeo :Button;
+    private lateinit var startclient :Button;
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +27,8 @@ class MainActivity : AppCompatActivity() {
         startplayer = findViewById(R.id.startplayer);
         startcalc = findViewById(R.id.startcalc);
         startgeo = findViewById(R.id.startgeo);
+        startclient = findViewById(R.id.startclient);
+
 
     }
 
@@ -44,6 +47,10 @@ class MainActivity : AppCompatActivity() {
 
         startgeo.setOnClickListener({
             val randomIntent = Intent(this@MainActivity, geo::class.java)
+            startActivity(randomIntent)
+        });
+        startclient.setOnClickListener({
+            val randomIntent = Intent(this@MainActivity, client::class.java)
             startActivity(randomIntent)
         });
     }
